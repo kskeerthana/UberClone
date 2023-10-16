@@ -38,7 +38,7 @@ const NavigateCard = () => {
                 language:"en",
             }}
             nearbyPlacesAPI='GooglePlacesSearch'
-            debounce={400}
+            debounce={200}
             />
         </View>
         <NavFavs/>

@@ -3,19 +3,18 @@ import React, { useEffect, useRef } from 'react'
 import MapView,{Marker} from 'react-native-maps'
 import tw from 'twrnc';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectDestination, selectOrigin, selectTravelTimeInfo } from '../slices/navSlice';
+import { selectDestination, selectOrigin, setTravelTimeInfo } from '../slices/navSlice';
 import MapViewDirections from 'react-native-maps-directions';
 import {GOOGLE_MAPS_APIKEY} from "@env";
 
 const Map = () => {
     const origin = useSelector(selectOrigin);
-    const destination = useSelector(selectDestination)
-    const mapRef = useRef(null)
+    const destination = useSelector(selectDestination);
+    const mapRef = useRef(null);
     const dispatch = useDispatch();
 
     useEffect(()=>{
         if(!origin || !destination) return;
-
         //zoom and fit markers
         mapRef.current.fitToSuppliedMarkers(["origin","destination"],
         {edgePadding : {top:50, right:50,bottom:50,left:50}}
@@ -25,14 +24,16 @@ const Map = () => {
     useEffect(()=>{
         if(!origin || !destination) return;
         const getTravelTime = async ()=>{
-            fetch(`https://maps.google.com/maps/api/distancematrix/json?units=imperial&
-            origins=${origin.description}&destinations=${destination.description}&key=${GOOGLE_MAPS_APIKEY}`)
-            .then(res => res.json())
-            .then(data =>{
-                dispatch(selectTravelTimeInfo(data.rows[0].elements[0]));
+            fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?
+            units=imperial&origins=${origin.description}&destinations=${destination.description}&key=${GOOGLE_MAPS_APIKEY}`)
+            .then((res) => res.json())
+            .then((data) =>{
+                // console.log('dispatch data',data.rows[0].elements[0].distance.text)
+                dispatch(setTravelTimeInfo(data.rows[0].elements[0]));
             })
-
-        }
+            .catch(error => console.error('Error fetching data:', error));
+        };
+        getTravelTime();
     },[origin,destination,GOOGLE_MAPS_APIKEY])
   return (
     <MapView
